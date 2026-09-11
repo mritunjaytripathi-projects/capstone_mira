@@ -1,1 +1,38 @@
+The pipeline leverages Langflow's layout mechanics using a primary Router Component and multiple Custom Agent Nodes:
 
+
+                  ┌──────────────────────┐
+                  │ 📥 Chat Input Node   │
+                  └──────────┬───────────┘
+                             │
+                             ▼
+              ┌──────────────────────────────┐
+              │ 🤖 Orchestrator (gpt-4o-mini)│
+              └──────┬───────┬───────┬───────┘
+                     │       │       │
+       ┌─────────────┘       │       └──────────────┐
+  Plan │ Request             │ Risk                 │ Status
+       ▼                     ▼                      ▼
+┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+│  📋 Planner  │      │⚠️ RiskAssessor│      │📊StatusReport│
+│  (gpt-4o)    │      │  (gpt-4o)    │      │  (gpt-4o)    │
+└──────┬───────┘      └──────┬───────┘      └──────┬───────┘
+       │                     │                     │ Sequential 
+       │                     │                     ▼ Dependency
+       │                     │              ┌──────────────┐
+       │                     │              │🎯 Milestone  │
+       │                     │              │ (gpt-4o)     │
+       │                     │              └──────┬───────┘
+       │                     │                     │
+       └─────────────────────┼─────────────────────┘
+                             ▼
+                  ┌──────────────────────┐
+                  │ 📤 Chat Output Node  │
+                  └──────────────────────┘
+
+⚙️ Component Map within JSON Configuration
+
+Orchestrator Agent Node (gpt-4o-mini): 
+Equipped with your custom System Prompt to output structural validation fields. Langflow evaluates the intent_classification property inside its downstream gateway.
+Specialized Agent Layer (gpt-4o): Executed on-demand depending on conditional matches.
+Chained Flow Mechanics: The Status Reporter Agent node pipe explicitly connects its payload directly into the inputs of the Milestone Tracker Agent to enable proactive tracking natively without requiring manual stakeholder re-routing.
